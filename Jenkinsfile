@@ -49,8 +49,8 @@ pipeline {
                             sh "wget https://raw.githubusercontent.com/${GIT_USER_NAME}/${GIT_REPO_NAME}/main/dev/deployment.yaml"
 
                     // Modify the image tag in the Deployment YAML
-                            sh "sed -i 's|replicas:.*/replicas: ${BUILD_NUMBER}|g' /var/lib/jenkins/workspace/$JOB_NAME/dev/deployment.yaml"
-
+                            sh "sed -i 's|replicas:.*/replicas: ${BUILD_NUMBER}|g' /var/lib/jenkins/workspace/hiringapp-build-push_update_maifest/hiringapp-build-push_update_maifest/dev/deployment.yaml"
+                
                     // Add, commit, and push the changes
                             sh "git add ."
                             sh "git commit -m 'Updated deployment image to version ${BUILD_NUMBER}'"
