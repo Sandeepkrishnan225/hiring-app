@@ -26,23 +26,39 @@ pipeline {
               git branch: 'main', url: 'https://github.com/Sandeepkrishnan225/Hiring-app-argocd.git'
             }
         } 
-        stage('Update K8S manifest & push to Repo'){
-            steps {
-                script{
-                   withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) { 
-                        sh '''
-                        cat /var/lib/jenkins/workspace/$JOB_NAME/dev/deployment.yaml
-                        sed -i 's|replicas:.*|replicas: ${BUILD_NUMBER}|g' /var/lib/jenkins/workspace/$JOB_NAME/dev/deployment.yaml
-                        cat /var/lib/jenkins/workspace/$JOB_NAME/dev/deployment.yaml
-                        git add .
-                        git commit -m 'Updated the deploy yaml | Jenkins Pipeline'
-                        git remote -v
-                        // git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/betawins/Hiring-app-argocd.git main
-                        sh "git push origin main"
-                        '''                        
-                      }
-                  }
-            }   
+        stage('GitOps Enabler to update deployment manifest') {
+            environment {
+                GIT_REPO_NAME = "Hiring-app-argocd"
+                GIT_USER_NAME = "Sandeepkrishnan225"
+                GIT_USER_EMAIL = "perugusandeep25@gmail.com"  
         }
+            steps {
+                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                    script {
+
+                // Specify the target directory for the clone
+                        def cloneDirectory = "hiringapp-build-push_update_maifest"
+
+                // Remove the existing directory if it exists
+                        sh "rm -rf ${cloneDirectory}"
+
+                // Clone the repository
+                        sh "git clone https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} ${cloneDirectory}"
+                        dir("${cloneDirectory}/dev") {
+                    // Fetch the current Deployment YAML
+                            sh "wget https://raw.githubusercontent.com/${GIT_USER_NAME}/${GIT_REPO_NAME}/main/dev/deployment.yml"
+
+                    // Modify the image tag in the Deployment YAML
+                            sh "sed -i 's|replicas:.*|replicas: ${BUILD_NUMBER}|g' /var/lib/jenkins/workspace/$JOB_NAME/dev/deployment.yaml"
+
+                    // Add, commit, and push the changes
+                            sh "git add ."
+                            sh "git commit -m 'Updated deployment image to version ${BUILD_NUMBER}'"
+                            sh "git push origin main"
+                }
+            }
+        }
+    }
+    }
             }
 } 
