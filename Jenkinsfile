@@ -32,12 +32,13 @@ pipeline {
                    withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) { 
                         sh '''
                         cat /var/lib/jenkins/workspace/$JOB_NAME/dev/deployment.yaml
-                        sed -i "s|replicas: .*/replicas: ${BUILD_NUMBER}|g" -f /var/lib/jenkins/workspace/$JOB_NAME/dev/deployment.yaml
+                        sed -i 's|replicas:.*|replicas: ${BUILD_NUMBER}|g' /var/lib/jenkins/workspace/$JOB_NAME/dev/deployment.yaml
                         cat /var/lib/jenkins/workspace/$JOB_NAME/dev/deployment.yaml
                         git add .
                         git commit -m 'Updated the deploy yaml | Jenkins Pipeline'
                         git remote -v
-                        git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/betawins/Hiring-app-argocd.git main
+                        // git push https://$GIT_USERNAME:$GIT_PASSWORD@github.com/betawins/Hiring-app-argocd.git main
+                        sh "git push origin main"
                         '''                        
                       }
                   }
